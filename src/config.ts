@@ -6,7 +6,8 @@ export interface Config {
         ip: string
         port: number
         password: string
-        renameFile: boolean
+        renameFile: boolean,
+        outputPath: string,
         renameTemplate: string
     }
     data: {
@@ -20,9 +21,10 @@ const defaultConfig: Config = {
     obs: {
         enable: true,
         ip: '127.0.0.1',
-        port: 4455,
+        port: 59650,
         password: '',
-        renameFile: true,
+        renameFile: false,
+        outputPath: '',
         renameTemplate: '{{directory}}/{{original-name}} {{queue}} {{map}} {{score}}{{extension}}'
     },
     data: {

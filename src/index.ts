@@ -1,4 +1,4 @@
-import OBSWebSocket from 'obs-websocket-js'
+import {SlobsClient} from 'slobs-client';
 import {ValorantAPI} from './ValorantAPI.js'
 import {
     CoregameMatchData,
@@ -81,22 +81,14 @@ async function main() {
     const config = await loadConfig()
 
     // Try connecting to OBS
-    const obs = new OBSWebSocket()
-    if(config.obs.enable) {
-        try {
-            await obs.connect(`ws://${config.obs.ip}:${config.obs.port}`, config.obs.password)
-        } catch(e) {
-            console.error('Failed to connect to OBS')
-            throw e
-        }
-    }
+    const obs = await SlobsClient.connect(`http://${config.obs.ip}:${config.obs.port}/api`, config.obs.password);
 
     // Set up Valorant API
     const val = new ValorantAPI()
     val.on('ready', async (lockfileData: LockfileData,
                            chatSession: ValorantChatSessionResponse,
                            externalSessions: ValorantExternalSessionsResponse) => {
-        console.log(`Valorant started, waiting for presence with puuid ${chatSession.puuid}`)
+        console.log(`VALORANT started, waiting for presence with puuid ${chatSession.puuid}`)
         const privatePresence = val.waitForPrivatePresence(chatSession.puuid)
         const help = await val.getFullHelp()
         console.log(`Loaded ${Object.keys(help.events).length} events, waiting for game...`)
@@ -106,7 +98,7 @@ async function main() {
         });
 
         ws.on('close', () => {
-            console.log('Disconnected from Valorant')
+            console.log('Disconnected from VALORANT')
         })
         ws.on('open', () => {
             // Subscribe to all events by name
@@ -137,8 +129,8 @@ async function main() {
 
                         let outputPath: string | null = null
                         if(config.obs.enable) {
-                            const response = (await obs.call('StopRecord')) as unknown as StopRecordResponse
-                            outputPath = response.outputPath
+                            await obs.request('StreamingService', 'toggleRecording');
+                            outputPath = config.obs.outputPath;
                         }
 
                         if(config.data.enable && dataDir !== null) {
@@ -197,7 +189,7 @@ async function main() {
                             console.log(`Game ${gameID} started!`)
 
                             if(preGameID === null && config.obs.enable) {
-                                await obs.call('StartRecord')
+                                await obs.request('StreamingService', 'toggleRecording');
                             }
 
                             if(config.data.enable) {
@@ -233,7 +225,7 @@ async function main() {
 
                         // Start OBS recording
                         if(config.obs.enable) {
-                            await obs.call('StartRecord')
+                            await obs.request('StreamingService', 'toggleRecording');
                         }
 
                         if(config.data.enable) {
@@ -258,7 +250,7 @@ async function main() {
     try {
         await val.checkLockfile()
     } catch(ignored) {
-        console.log('Waiting for Valorant to start...')
+        console.log('Waiting for VALORANT to start...')
     }
 }
 

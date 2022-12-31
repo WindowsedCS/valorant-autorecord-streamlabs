@@ -26,7 +26,7 @@
     "ee-ts": "^1.0.2",
     "mustache": "^4.2.0",
     "node-fetch": "^3.2.9",
-    "obs-websocket-js": "^5.0.0",
+    "slobs-client": "^1.0.3",
     "ws": "^8.8.1"
   }
 }
